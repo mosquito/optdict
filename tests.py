@@ -27,12 +27,11 @@ def ip4_isvalid(value, options):
 def test0():
     p = Parser({
         "main": {
-            "listen_address": {
+            "listen": {
                 "keys": ["-l", "--listen"],
                 "validators": (ip4_isvalid),
                 "help": "Listen address",
-                "default": "0.0.0.0",
-                "action": "store_const"
+                "default": "0.0.0.0"
             }
         },
         "debug": {
@@ -40,6 +39,7 @@ def test0():
                 "keys": ['-d'],
                 "action": "count",
                 "default": 0,
+                "type": int
             }
         },
         "__meta__": {

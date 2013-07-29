@@ -13,3 +13,4 @@ from .parser import Parser
 
 __author__ = 'mosquito'
 __all__ = [Parser,]
+__version__ = "0.1"

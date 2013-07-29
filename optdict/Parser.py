@@ -32,7 +32,7 @@ class Parser(object):
 
             dictionary = {
                 "main": {
-                    "listen_address": {
+                    "listen": {
                         "keys": ["-l", "--listen"],
                         "validators": (ip4_isvalid),
                         "help": "Listen address",
@@ -65,6 +65,9 @@ class Parser(object):
     def __str__(self):
         return json.dumps((self._data_dict, self._sections_help), indent=1, default=lambda n: str(n))
 
+    def _key(self, section, key):
+        return "{0}_{1}".format(section, key)
+
     def validate_dict(self):
         self._data_dict = dict()
         for section, key_list in self.data.items():
@@ -74,14 +77,15 @@ class Parser(object):
             self._data_dict[section] = dict()
 
             for key, params in key_list.items():
+                full_key = self._key(section, key)
                 self._data_dict[section][key] = {
                     'keys': params.get("keys", KeyError("required value")),
-                    'default': params.get("default", None),
-                    'action': params.get("action", 'store_const'),
-                    'type': params.get("type", None),
+                    'default': params.get("default", ''),
+                    'action': params.get("action", "store"),
+                    'type': params.get("type", "string"),
                     'help': params.get("help", "Set {0} value".format(key)),
                     'validators': params.get("validators", (lambda x: x,)),
-                    'metavar': params.get("metavar", key.upper())
+                    'metavar': params.get("metavar", full_key.upper())
                 }
 
         # Add help text for groups
@@ -103,21 +107,30 @@ class Parser(object):
         self.options_parser = OptionParser()
         self.options_parser.add_option(
             "--config", help="Set options from JSON file (generate example by --gen-conf).",
-            action="callback", callback=self.load_config
+            action="callback", type="string", callback=self.load_config, metavar="file".upper()
         )
 
         for section, keys in self._data_dict.items():
             group = OptionGroup(title=self._sections_help[section], parser=self.options_parser)
 
             for dest, params in keys.items():
-                group.add_option(*params['keys'],
-                    action=params['action'],
-                    dest=dest,
-                    default=params['default'],
-                    help=params['help'],
-                    type=params['type'],
-                    metavar=params['metavar']
-                )
+                if "store" in params['action']:
+                    group.add_option(*params['keys'],
+                        action=params['action'],
+                        dest=self._key(section, dest),
+                        default=params['default'],
+                        help=params['help'],
+                        type=params['type'],
+                        metavar=params['metavar']
+                    )
+                elif params['action'] == 'count':
+                    group.add_option(*params['keys'],
+                        action=params['action'],
+                        dest=self._key(section, dest),
+                        default=params['default'],
+                        help="{0} (multiply increases value)".format(params['help']),
+                        metavar=params['metavar']
+                    )
 
             self.options_parser.add_option_group(group)
 
@@ -132,24 +145,25 @@ class Parser(object):
         for section, params in self._data_dict.items():
             config[section] = dict()
             for key in params.keys():
-                config[section][key] = parser.defaults.get(key, None)
+                config[section][key] = parser.defaults.get("{0}_{1}".format(section, key), None)
         print(json.dumps(config, indent=1, default=lambda x: str(x)))
         exit(1)
 
     def load_config(self, option, opt_str, value, parser, *args, **kwargs):
-        if not os.path.exists(opt_str):
+        if not os.path.exists(value):
             raise OptionValueError("Config file not exist")
 
         try:
-            data = json.loads(codecs.open(value, "r", "utf-8"))
-        except ValueError as e:
+            data = json.loads(codecs.open(value, "r", "utf-8").read())
+        except (ValueError, TypeError) as e:
             raise OptionValueError("Config not valid JSON file\n\t{0}".format(str(e)))
 
         defaults = dict()
 
         for section, keys in data.items():
             for key, value in keys.items():
-                if self.options_parser.defaults.has_key(key):
-                    defaults[key] = value
+                dest = self._key(section, key)
+                if self.options_parser.defaults.has_key(dest):
+                    defaults[dest] = value
 
-        self.options_parser.defaults = defaults
+        parser.values = defaults
