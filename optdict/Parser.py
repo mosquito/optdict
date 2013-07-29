@@ -158,12 +158,10 @@ class Parser(object):
         except (ValueError, TypeError) as e:
             raise OptionValueError("Config not valid JSON file\n\t{0}".format(str(e)))
 
-        defaults = dict()
-
         for section, keys in data.items():
             for key, value in keys.items():
                 dest = self._key(section, key)
                 if self.options_parser.defaults.has_key(dest):
-                    defaults[dest] = value
+                    setattr(parser.values, dest, value)
 
-        parser.values = defaults
+        parser.values.config = data
