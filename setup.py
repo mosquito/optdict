@@ -17,9 +17,13 @@ except ImportError:
 
 setup(name='OptDict',
       version=optdict.__version__,
-      description='',
       author=optdict.__author__,
       author_email='me@mosquito.su',
+      license="MIT",
+      summary="OptDict module",
+      description="OptDict - Option parser from dictionary, with configure from file and validation.",
+      platform="all",
+      home_page="http://github.com/mosquito/optdict",
       packages=[
           'optdict',
       ],
