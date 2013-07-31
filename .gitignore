@@ -1,7 +1,8 @@
 *.pyc
-env
 .*rc
-tmp
-.idea
-readme.py
 *.egg-info
+.idea
+env
+tmp
+readme.py
+dist

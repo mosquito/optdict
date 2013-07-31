@@ -1,8 +1,0 @@
-setup.py
-OptDict.egg-info/PKG-INFO
-OptDict.egg-info/SOURCES.txt
-OptDict.egg-info/dependency_links.txt
-OptDict.egg-info/top_level.txt
-optdict/__init__.py
-optdict/parser.py
-optdict/validators.py
