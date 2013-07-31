@@ -11,56 +11,20 @@
 from __future__ import print_function, absolute_import
 from inspect import isfunction
 from optparse import OptionParser, OptionGroup, OptionValueError, OptionConflictError
+import sys
 import codecs
 import json
+from optdict import validators
 import os
 
 __author__ = 'mosquito'
 
 class Parser(object):
     def __init__(self, dictionary):
-        """
-            def ip4_isvalid(value, options):
-                if value == '0.0.0.0':
-                    return value
-                else:
-                    tester = ".".join([i if int(i) > 0 and int(i) < 255 else '0' for i in "0.0.0.0".split('.')])
-                    if value == tester:
-                        return value
-                    else:
-                        raise ValueError("Value must be IPv4 address")
-
-            dictionary = {
-                "main": {
-                    "listen": {
-                        "keys": ["-l", "--listen"],
-                        "validators": (ip4_isvalid),
-                        "help": "Listen address",
-                        "default": "0.0.0.0",
-                        "action": "store_const"
-                    }
-                },
-                "debug": {
-                    "debug": {
-                        "keys": ['-d'],
-                        "action": "count",
-                        "default": 0,
-                        "type": "int",
-                        "help": "Debuging output"
-                    }
-                },
-                "__meta__": {
-                    "sections_help": {
-                        "debug": "Debugging options",
-                        "main": "Main options"
-                    }
-                }
-            }
-        """
-
         assert isinstance(dictionary, dict)
-        self.data = dictionary
-        self.validate_dict()
+        self.__data = dictionary
+        self.__validators = dict()
+        self._validate_dict()
 
     def __str__(self):
         return json.dumps((self._data_dict, self._sections_help), indent=1, default=lambda n: str(n))
@@ -68,9 +32,9 @@ class Parser(object):
     def _key(self, section, key):
         return "{0}_{1}".format(section, key)
 
-    def validate_dict(self):
+    def _validate_dict(self):
         self._data_dict = dict()
-        for section, key_list in self.data.items():
+        for section, key_list in self.__data.items():
             if section == "__meta__":
                 continue
 
@@ -80,67 +44,80 @@ class Parser(object):
                 full_key = self._key(section, key)
                 self._data_dict[section][key] = {
                     'keys': params.get("keys", KeyError("required value")),
-                    'default': params.get("default", ''),
+                    'default': params.get("default", None),
+                    'dest': full_key,
                     'action': params.get("action", "store"),
                     'type': params.get("type", "string"),
                     'help': params.get("help", "Set {0} value".format(key)),
-                    'validators': params.get("validators", (lambda x: x,)),
+                    'validator': params.get("validator", validators.Valid(lambda x: True,)),
                     'metavar': params.get("metavar", full_key.upper())
                 }
+
+                if self._data_dict[section][key]['action'] == "store_true" and \
+                    self._data_dict[section][key]['default'] == None:
+                    self._data_dict[section][key]['default'] = False
+
+                if self._data_dict[section][key]['action'] == "store_false" and \
+                    self._data_dict[section][key]['default'] == None:
+                    self._data_dict[section][key]['default'] = True
+
+                if self._data_dict[section][key]['action'] == "store_const":
+                    self._data_dict[section][key].pop('type')
+
+                if "count" in self._data_dict[section][key]['action']:
+                    self._data_dict[section][key].pop('type')
 
         # Add help text for groups
 
         # if defined
-        if self.data.has_key('__meta__') and self.data["__meta__"].has_key('sections_help'):
-            self._sections_help = self.data["__meta__"]["sections_help"]
+        if self.__data.has_key('__meta__') and self.__data["__meta__"].has_key('sections_help'):
+            self._sections_help = self.__data["__meta__"]["sections_help"]
         else:
             self._sections_help = {"sections_help": {}}
 
-        for section in self.data.keys():
-            if section == '__meta__':
-                continue
-
+        for section in self.__data.keys():
+            if section == '__meta__': continue
             # Generate default if undefined
             self._sections_help[section] = self._sections_help.get(section, "{0} options".format(section.capitalize()))
 
-    def options_builder(self):
-        self.options_parser = OptionParser()
-        self.options_parser.add_option(
+
+        if self.__data.has_key('__meta__') and self.__data["__meta__"].has_key('sections_text'):
+            self._sections_descriptions = self.__data["__meta__"]["sections_text"]
+        else:
+            self._sections_descriptions = {"sections_text": {}}
+
+        for section in self.__data.keys():
+            if section == '__meta__': continue
+            # Generate default if undefined
+            self._sections_descriptions[section] = self._sections_descriptions.get(section, None)
+
+    def _options_builder(self):
+        self._options_parser = OptionParser()
+        self._options_parser.add_option(
             "--config", help="Set options from JSON file (generate example by --gen-conf).",
-            action="callback", type="string", callback=self.load_config, metavar="file".upper()
+            action="callback", type="string", callback=self._load_config, metavar="file".upper()
         )
 
         for section, keys in self._data_dict.items():
-            group = OptionGroup(title=self._sections_help[section], parser=self.options_parser)
+            group = OptionGroup(
+                title=self._sections_help[section],
+                parser=self._options_parser,
+                description=self._sections_descriptions[section]
+            )
 
-            for dest, params in keys.items():
-                if "store" in params['action']:
-                    group.add_option(*params['keys'],
-                        action=params['action'],
-                        dest=self._key(section, dest),
-                        default=params['default'],
-                        help=params['help'],
-                        type=params['type'],
-                        metavar=params['metavar']
-                    )
-                elif params['action'] == 'count':
-                    group.add_option(*params['keys'],
-                        action=params['action'],
-                        dest=self._key(section, dest),
-                        default=params['default'],
-                        help="{0} (multiply increases value)".format(params['help']),
-                        metavar=params['metavar']
-                    )
+            for key, params in keys.items():
+                self.__validators[self._key(section, key)] = params.pop("validator")
+                group.add_option(*params.pop('keys'), **params)
 
-            self.options_parser.add_option_group(group)
+            self._options_parser.add_option_group(group)
 
-        self.options_parser.add_option(
+        self._options_parser.add_option(
             "--gen-conf", help="Print sample config file and exit.",
-            action="callback", callback=self.gen_conf
+            action="callback", callback=self._gen_conf
         )
-        return self.options_parser
+        return self._options_parser
 
-    def gen_conf(self, option, opt_str, value, parser, *args, **kwargs):
+    def _gen_conf(self, option, opt_str, value, parser, *args, **kwargs):
         config = dict()
         for section, params in self._data_dict.items():
             config[section] = dict()
@@ -149,7 +126,7 @@ class Parser(object):
         print(json.dumps(config, indent=1, default=lambda x: str(x)))
         exit(1)
 
-    def load_config(self, option, opt_str, value, parser, *args, **kwargs):
+    def _load_config(self, option, opt_str, value, parser, *args, **kwargs):
         if not os.path.exists(value):
             raise OptionValueError("Config file not exist")
 
@@ -161,7 +138,31 @@ class Parser(object):
         for section, keys in data.items():
             for key, value in keys.items():
                 dest = self._key(section, key)
-                if self.options_parser.defaults.has_key(dest):
+                if self._options_parser.defaults.has_key(dest):
                     setattr(parser.values, dest, value)
 
         parser.values.config = data
+
+    def _validate(self, options, args):
+        for dest, func in self.__validators.items():
+            try:
+                value = getattr(options, dest)
+
+                if isinstance(func, validators.ValidatorBase):
+                    func(arg=value, options=options, parser=self._options_parser, dest=dest)
+                else:
+                    raise validators.ValidationError("Validator must be instance ValidationBase")
+            except validators.ValidationError as e:
+                sys.stderr.write("{2}\n ERROR: Validator for key \"{0}\" error:\n{1}\n{2}\n".format(dest, str(e), "=" * 50))
+                sys.stderr.flush()
+            except Exception as e:
+                raise e
+
+            if func.critical:
+                exit(128)
+
+    def parse_args(self):
+        parser = self._options_builder()
+        options, args = parser.parse_args()
+        self._validate(options, args)
+        return (options, args)
