@@ -42,7 +42,7 @@ class Parser(object):
             for key, params in key_list.items():
                 full_key = self._key(section, key)
                 self._data_dict[section][key] = {
-                    'keys': params.get("keys", KeyError("required value")),
+                    'keys': params.get("keys", None),
                     'default': params.get("default", None),
                     'dest': full_key,
                     'action': params.get("action", "store"),
@@ -51,6 +51,9 @@ class Parser(object):
                     'validator': params.get("validator", validators.Valid(lambda x: True,)),
                     'metavar': params.get("metavar", full_key.upper())
                 }
+
+                if self._data_dict[section][key]['keys'] == None:
+                    raise OptionValueError("required value")
 
                 if self._data_dict[section][key]['action'] == "store_true" and \
                     self._data_dict[section][key]['default'] == None:
@@ -65,6 +68,15 @@ class Parser(object):
 
                 if "count" in self._data_dict[section][key]['action']:
                     self._data_dict[section][key].pop('type')
+
+                if self._data_dict[section][key]['action'] == 'callback':
+                    self._data_dict[section][key].pop('type')
+                    self._data_dict[section][key].pop('default')
+                    self._data_dict[section][key]['callback'] = params.get("callback", None)
+
+                    if self._data_dict[section][key]['callback'] == None:
+                        raise OptionValueError("required value")
+
 
         # Add help text for groups
 

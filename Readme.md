@@ -31,6 +31,7 @@ options_dict = {
             # * store_false - stores false (default True)
             # * store_const - stores constans
             # * count - stores the number of repetitions of the key (if only key is single symbol)
+            # * callback - run function defined to callback options (see OptParse docs)
             "action": "store_const"
         }
     },
@@ -58,7 +59,7 @@ options_dict = {
 }
 
 if __name__ == "__main__":
-    print (str(options, args = Parser(options_dict).parse_args())
+    options, args = Parser(options_dict).parse_args()
 ```
 
 And run it:
