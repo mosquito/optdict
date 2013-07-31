@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 """
-* Created by PyCharm.
 * Date: 29.07.13
 * Time: 23:09
 * Original filename: 

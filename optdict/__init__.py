@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 """
-* Created by PyCharm.
 * Date: 29.07.13
 * Time: 0:11
 * Original filename: 
@@ -14,4 +13,4 @@ from . import validators
 
 __author__ = 'mosquito'
 __all__ = [Parser, validators]
-__version__ = "0.1"
+__version__ = "0.4.4"

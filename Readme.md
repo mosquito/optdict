@@ -66,11 +66,14 @@ options_dict = {
 
 if __name__ == "__main__":
     options, args = Parser(options_dict).parse_args()
+
+    print "Listen:", options.main_listen
+    print "Debug:", options.debug_debug
 ```
 
 And run it:
 
-    $ test.py --help
+    $ python test.py --help
     Usage: test.py [options]
 
     Options:
@@ -130,11 +133,26 @@ options_dict = {
 arguments: (*names)
 synonym: Require
 
+Test if all options from args is set
+
+example:
+    RequireAll("main_listen", "main_port")
+
 ### RequireOnce
 arguments: (*names)
 
+Test if once option from args is set
+
+example (for optopn test from main section (main_test)):
+    RequireOnce("main_listen", "main_port", "main_socket")
+
 ### Conflict
 arguments: (*names)
+
+Test if other options not set (and bool(default) == False)
+
+example (for option name "main_listen"):
+    Conflict("main_test") # Exception if option test from main section is set
 
 ### ValidAll
 arguments: (*funcs, critical=True)
@@ -142,9 +160,76 @@ synonym: Valid
 
 If at least one function returns false, an exception is thrown.
 
+example:
+    Valid(
+        lambda x: x >= 0,
+        lambda x: x < 256
+    )
+
 ### ValidOnce
 arguments: (*funcs, critical=True)
 
 If at least one function returns true, an exception is thrown.
 
+example:
+    ValidOnce(
+        lambda x: x >= 0 and x < 256,
+        lambda x: x == -1
+    )
+
 ### ValidationQueue
+Validate Multiple validators
+
+example:
+    ValidateQueue(
+        ValidAll(
+            lambda x: x >= 0,
+            lambda x: x != -1,
+        ),
+        ValidOnce(
+            lambda x: x < 0,
+            lambda x: x > 10,
+        )
+    )
+
+## Configuration from JSON file
+OptDict added options "--config" and "--gen-conf" in root section.
+
+### Generate example configuration
+To create a configuration example, a call option "generate". Configuration will be printed.
+
+### Read configuration from file
+Create a sample configuration as follows:
+
+    # python test.py --gen-conf | tee /tmp/sample.json
+    {
+     "debug": {
+      "debug": 0
+     },
+     "main": {
+      "test": null,
+      "listen": "127.0.0.1"
+     }
+    }
+
+Edit /tmp/sample.json:
+    {
+     "debug": {
+      "debug": 999
+     },
+     "main": {
+      "test": null,
+      "listen": "0.0.0.0"
+     }
+    }
+
+Run test with config file:
+    $ python test.py --config /tmp/sample.json
+    Listen: 0.0.0.0
+    Debug: 999
+
+Start options override the config file:
+    $ python readme.py --config /tmp/sample.json -l 10.0.0.1
+    Listen: 10.0.0.1
+    Debug: 999
+
