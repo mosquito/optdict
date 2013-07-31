@@ -1,0 +1,10 @@
+Metadata-Version: 1.0
+Name: OptDict
+Version: 0.1
+Summary: OptDict
+Home-page: http://github.com/mosquito/optdict
+Author: mosquito
+Author-email: me@mosquito.su
+License: MIT
+Description: OptDict - Option parser from dictionary, with configure from file and validation.
+Platform: All
