@@ -1,7 +1,7 @@
 OptDict
 =======
 
-Module for python, for easy to use command line options, validation options values and configuration from JSON file
+Python module for easy to use command line options. With validation options values and configuration from JSON file.
 
 ## Example
 
