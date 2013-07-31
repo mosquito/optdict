@@ -50,36 +50,39 @@ class Parser(object):
                     'validator': params.get("validator", validators.Valid(lambda x: True,)),
                     'metavar': params.get("metavar", full_key.upper())
                 }
+                option = self._data_dict[section][key]
 
-                if self._data_dict[section][key]['action'].startswith("store") and \
-                        self._data_dict[section][key]['type'] == None:
-                    self._data_dict[section][key]['type'] = "string"
+                if option['action'].startswith("store") and \
+                        option['type'] == None:
+                    option['type'] = "string"
 
-                if self._data_dict[section][key]['keys'] == None:
+                if option['keys'] == None:
                     raise OptionValueError("required value")
 
-                if self._data_dict[section][key]['action'] == "store_true" and \
-                    self._data_dict[section][key]['default'] == None:
-                    self._data_dict[section][key]['default'] = False
+                if option['action'] == "store_true" and \
+                    option['default'] == None:
+                    option.pop('type')
+                    option['default'] = False
 
-                if self._data_dict[section][key]['action'] == "store_false" and \
-                    self._data_dict[section][key]['default'] == None:
-                    self._data_dict[section][key]['default'] = True
+                if option['action'] == "store_false" and \
+                    option['default'] == None:
+                    option.pop('type')
+                    option['default'] = True
 
-                if self._data_dict[section][key]['action'] == "store_const":
-                    self._data_dict[section][key].pop('type')
+                if option['action'] == "store_const":
+                    option.pop('type')
 
-                if "count" in self._data_dict[section][key]['action']:
-                    self._data_dict[section][key].pop('type')
+                if "count" in option['action']:
+                    option.pop('type')
 
-                if self._data_dict[section][key]['action'] == 'callback':
-                    if not self._data_dict[section][key]['type']:
-                        self._data_dict[section][key].pop('type')
+                if option['action'] == 'callback':
+                    if not option['type']:
+                        option.pop('type')
 
-                    self._data_dict[section][key].pop('default')
-                    self._data_dict[section][key]['callback'] = params.get("callback", None)
+                    option.pop('default')
+                    option['callback'] = params.get("callback", None)
 
-                    if self._data_dict[section][key]['callback'] == None:
+                    if option['callback'] == None:
                         raise OptionValueError("required value")
 
 
