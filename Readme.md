@@ -3,10 +3,10 @@ OptDict
 
 Module for python, for easy to use command line options, validation options values and configuration from JSON file
 
-== Example ==
+## Example
 
 Example usage for command line params
-```python
+    ```python
     from optdict import Parser, validators
 
     options_dict = {
@@ -59,7 +59,7 @@ Example usage for command line params
 
     if __name__ == "__main__":
         print (str(options, args = Parser(options_dict).parse_args())
-```
+    ```
 
 And run it:
 
@@ -79,7 +79,7 @@ And run it:
 
         -l, --listen  Listen address
 
-== Validations ==
+## Validations
 
 The module provides this validators:
 * RequireAll(func1[, func2, ... funcN]) {synonym: Require}
@@ -90,6 +90,7 @@ The module provides this validators:
 * ValidationQueue(Validator0[, Validator1])
 
 Call example:
+
     ```python
     options_dict = {
         # Params section "main"
@@ -114,30 +115,27 @@ Call example:
             }
         }
     }
-```
+    ```
 
-=== RequireAll ===
+### RequireAll
 arguments: (*names)
 synonym: Require
 
-
-
-=== RequireOnce ===
+### RequireOnce
 arguments: (*names)
 
-=== Conflict ===
+### Conflict
 arguments: (*names)
 
-
-=== ValidAll ===
+### ValidAll
 arguments: (*funcs, critical=True)
 synonym: Valid
 
 If at least one function returns false, an exception is thrown.
 
-=== ValidOnce ===
+### ValidOnce
 arguments: (*funcs, critical=True)
 
 If at least one function returns true, an exception is thrown.
 
-=== ValidationQueue ===
+### ValidationQueue
