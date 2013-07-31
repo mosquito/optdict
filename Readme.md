@@ -6,60 +6,60 @@ Module for python, for easy to use command line options, validation options valu
 ## Example
 
 Example usage for command line params
-    ```python
-    from optdict import Parser, validators
+```python
+from optdict import Parser, validators
 
-    options_dict = {
-        # Params section "main"
-        "main": {
-            "listen": {
-                # Command line keys (require)
-                "keys": ["-l", "--listen"],
+options_dict = {
+    # Params section "main"
+    "main": {
+        "listen": {
+            # Command line keys (require)
+            "keys": ["-l", "--listen"],
 
-                # Validator call for value (optional)
-                "validator": validators.Valid(lambda addr: ".".join([str(j) for j in [int(i) for i in addr.split(".")] if j >=0 and j<256]) == addr)
+            # Validator call for value (optional)
+            "validator": validators.Valid(lambda addr: ".".join([str(j) for j in [int(i) for i in addr.split(".")] if j >=0 and j<256]) == addr)
 
-                # Help text (optional)
-                "help": "Listen address",
+            # Help text (optional)
+            "help": "Listen address",
 
-                # Default value (optional default None)
-                "default": "127.0.0.1",
+            # Default value (optional default None)
+            "default": "127.0.0.1",
 
-                # Action (optional)
-                # support all OptParse options
-                # * store_true - stores true (default False)
-                # * store_false - stores false (default True)
-                # * store_const - stores constans
-                # * count - stores the number of repetitions of the key (if only key is single symbol)
-                "action": "store_const"
-            }
-        },
-        # Another section
+            # Action (optional)
+            # support all OptParse options
+            # * store_true - stores true (default False)
+            # * store_false - stores false (default True)
+            # * store_const - stores constans
+            # * count - stores the number of repetitions of the key (if only key is single symbol)
+            "action": "store_const"
+        }
+    },
+    # Another section
+    "debug": {
         "debug": {
-            "debug": {
-                "keys": ['-d'],
-                "action": "count",
-                "default": 0,
-                "type": "int",
-                "help": "Debuging output"
-            }
+            "keys": ['-d'],
+            "action": "count",
+            "default": 0,
+            "type": "int",
+            "help": "Debuging output"
+        }
+    },
+    # Meta section
+    "__meta__": {
+        # Help messages for sections
+        "sections_help": {
+            "debug": "Debugging options",
+            "main": "Main options"
         },
-        # Meta section
-        "__meta__": {
-            # Help messages for sections
-            "sections_help": {
-                "debug": "Debugging options",
-                "main": "Main options"
-            },
-            "sections_text": {
-                "main": "This section contains main options for test this..."
-            }
+        "sections_text": {
+            "main": "This section contains main options for test this..."
         }
     }
+}
 
-    if __name__ == "__main__":
-        print (str(options, args = Parser(options_dict).parse_args())
-    ```
+if __name__ == "__main__":
+    print (str(options, args = Parser(options_dict).parse_args())
+```
 
 And run it:
 
@@ -91,31 +91,31 @@ The module provides this validators:
 
 Call example:
 
-    ```python
-    options_dict = {
-        # Params section "main"
-        "main": {
-            "listen_address": {
-                "keys": ["-l", "--listen"],
-                "validator": validators.ValidOnce(
-                    lambda addr: ".".join([str(j) for j in [int(i) for i in addr.split(".")] if j >=0 and j<256]) == addr,
-                    lambda path: os.path.exists(os.path.basedir(path),
-                )
-                "help": "Listen address",
-            },
-            "port": {
-                "keys": ["-p", "--port"],
-                # if "unix_socket" option defined, call exception
-                # key critical - if true then exit(128)
-                "validator": Conflict("unix_socket", critical=True)
-            },
-            "unix_socket": {
-                "keys": ["--socket"],
-                "help": "Force listen unix socket"
-            }
+```python
+options_dict = {
+    # Params section "main"
+    "main": {
+        "listen_address": {
+            "keys": ["-l", "--listen"],
+            "validator": validators.ValidOnce(
+                lambda addr: ".".join([str(j) for j in [int(i) for i in addr.split(".")] if j >=0 and j<256]) == addr,
+                lambda path: os.path.exists(os.path.basedir(path),
+            )
+            "help": "Listen address",
+        },
+        "port": {
+            "keys": ["-p", "--port"],
+            # if "unix_socket" option defined, call exception
+            # key critical - if true then exit(128)
+            "validator": Conflict("unix_socket", critical=True)
+        },
+        "unix_socket": {
+            "keys": ["--socket"],
+            "help": "Force listen unix socket"
         }
     }
-    ```
+}
+```
 
 ### RequireAll
 arguments: (*names)
