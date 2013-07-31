@@ -17,7 +17,7 @@ options_dict = {
             "keys": ["-l", "--listen"],
 
             # Validator call for value (optional)
-            "validator": validators.Valid(lambda addr: ".".join([str(j) for j in [int(i) for i in addr.split(".")] if j >=0 and j<256]) == addr)
+            "validator": validators.Valid(lambda addr: ".".join([str(j) for j in [int(i) for i in addr.split(".")] if j >=0 and j<256]) == addr),
 
             # Help text (optional)
             "help": "Listen address",
@@ -31,8 +31,14 @@ options_dict = {
             # * store_false - stores false (default True)
             # * store_const - stores constans
             # * count - stores the number of repetitions of the key (if only key is single symbol)
-            # * callback - run function defined to callback options (see OptParse docs)
+            # * callback - run function defined to "callback" option (see OptParse docs)
             "action": "store_const"
+        },
+        "test": {
+            "keys": ["-t"],
+            "help": "Test someone",
+            "action": "callback",
+            "callback": lambda x: exit(0),
         }
     },
     # Another section
@@ -68,17 +74,19 @@ And run it:
     Usage: test.py [options]
 
     Options:
-      -h, --help      show this help message and exit
-      --config=FILE   Set options from JSON file (generate example by --gen-conf).
-      --gen-conf      Print sample config file and exit.
+      -h, --help            show this help message and exit
+      --config=FILE         Set options from JSON file (generate example by --gen-conf).
+      --gen-conf            Print sample config file and exit.
 
       Debugging options:
-        -d            Debuging output
+        -d                  Debuging output
 
       Main options:
         This section contains main options for test this...
 
-        -l, --listen  Listen address
+        -t                  Test someone
+        -l MAIN_LISTEN, --listen=MAIN_LISTEN
+                            Listen address
 
 ## Validations
 

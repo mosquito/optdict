@@ -46,11 +46,15 @@ class Parser(object):
                     'default': params.get("default", None),
                     'dest': full_key,
                     'action': params.get("action", "store"),
-                    'type': params.get("type", "string"),
-                    'help': params.get("help", "Set {0} value".format(key)),
+                    'type': params.get("type", None),
+                    'help': str(params.get("help", "Set {0} value".format(key))),
                     'validator': params.get("validator", validators.Valid(lambda x: True,)),
                     'metavar': params.get("metavar", full_key.upper())
                 }
+
+                if self._data_dict[section][key]['action'].startswith("store") and \
+                        self._data_dict[section][key]['type'] == None:
+                    self._data_dict[section][key]['type'] = "string"
 
                 if self._data_dict[section][key]['keys'] == None:
                     raise OptionValueError("required value")
@@ -70,7 +74,9 @@ class Parser(object):
                     self._data_dict[section][key].pop('type')
 
                 if self._data_dict[section][key]['action'] == 'callback':
-                    self._data_dict[section][key].pop('type')
+                    if not self._data_dict[section][key]['type']:
+                        self._data_dict[section][key].pop('type')
+
                     self._data_dict[section][key].pop('default')
                     self._data_dict[section][key]['callback'] = params.get("callback", None)
 
@@ -156,21 +162,22 @@ class Parser(object):
 
     def _validate(self, options, args):
         for dest, func in self.__validators.items():
-            try:
-                value = getattr(options, dest)
+            if func:
+                try:
+                    value = getattr(options, dest)
 
-                if isinstance(func, validators.ValidatorBase):
-                    func(arg=value, options=options, parser=self._options_parser, dest=dest)
-                else:
-                    raise validators.ValidationError("Validator must be instance ValidationBase")
-            except validators.ValidationError as e:
-                sys.stderr.write("{2}\n ERROR: Validator for key \"{0}\" error:\n{1}\n{2}\n".format(dest, str(e), "=" * 50))
-                sys.stderr.flush()
-            except Exception as e:
-                raise e
+                    if isinstance(func, validators.ValidatorBase):
+                        func(arg=value, options=options, parser=self._options_parser, dest=dest)
+                    else:
+                        raise validators.ValidationError("Validator must be instance ValidationBase")
+                except validators.ValidationError as e:
+                    sys.stderr.write("{2}\n ERROR: Validator for key \"{0}\" error:\n{1}\n{2}\n".format(dest, str(e), "=" * 50))
+                    sys.stderr.flush()
+                except Exception as e:
+                    raise e
 
-            if func.critical:
-                exit(128)
+                if func.critical:
+                    exit(128)
 
     def parse_args(self):
         parser = self._options_builder()
