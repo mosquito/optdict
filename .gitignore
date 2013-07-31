@@ -1,6 +1,6 @@
 *.pyc
 env
-.zshrc
+.*rc
 tmp
 .idea
 readme.py
