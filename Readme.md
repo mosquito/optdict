@@ -251,3 +251,24 @@ Start options override the config file:
     $ python readme.py --config /tmp/sample.json -l 10.0.0.1
     Listen: 10.0.0.1
     Debug: 999
+
+## Options usage
+Example usage for optdict after parse options
+
+```python
+if __name__ == "__main__":
+    options, args = Parser(options_dict).parse_args()
+
+    print "Listen:", options.main_listen
+    print "Debug:", options.debug_debug
+```
+
+### Attribute naming
+The naming attribute is the next rule:
+
+    section_optionname
+
+thus, the option "listen" in the section "main" is an attribute of "main_listen"
+
+### Current config (dictionary)
+Method options.to_dict() returns dictionary of dictionaries of values

@@ -180,10 +180,17 @@ class Parser(object):
                     exit(128)
 
     def _to_dict(self):
-        pass
+        out = dict([(section, {}) for section in self._data_dict.keys()])
+        for key, value in self.parser.values.__dict__.items():
+            for section in out.keys():
+                if key.startswith(section):
+                    out[section][key.replace("{0}_".format(section), "")] = value
+
+        return out
 
     def parse_args(self):
-        parser = self._options_builder()
-        options, args = parser.parse_args()
+        self.parser = self._options_builder()
+        options, args = self.parser.parse_args()
         self._validate(options, args)
+        options.to_dict = lambda : self._to_dict()
         return (options, args)
