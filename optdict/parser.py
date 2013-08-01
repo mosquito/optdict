@@ -48,13 +48,16 @@ class Parser(object):
                     'type': params.get("type", None),
                     'help': str(params.get("help", "Set {0} value".format(key))),
                     'validator': params.get("validator", validators.Valid(lambda x: True,)),
-                    'metavar': params.get("metavar", full_key.upper())
+                    'metavar': params.get("metavar", key.upper())
                 }
                 option = self._data_dict[section][key]
 
                 if option['action'].startswith("store") and \
                         option['type'] == None:
                     option['type'] = "string"
+
+                if option['action'].startswith("store") and not option["default"] == None:
+                    option["help"] = "{0} [Default: {1}]".format(option['help'], option['default'])
 
                 if option['keys'] == None:
                     raise OptionValueError("required value")
@@ -89,21 +92,16 @@ class Parser(object):
         # Add help text for groups
 
         # if defined
-        if self.__data.has_key('__meta__') and self.__data["__meta__"].has_key('sections_help'):
-            self._sections_help = self.__data["__meta__"]["sections_help"]
-        else:
-            self._sections_help = {"sections_help": {}}
+        if self.__data.has_key('__meta__'):
+            self._sections_help = self.__data["__meta__"].get("sections_help", {"sections_help": {}})
+            self._sections_descriptions = self.__data["__meta__"].get("sections_text", {"sections_text": {}})
+
+            self.__usage = self.__data['__meta__'].get("usage", None)
 
         for section in self.__data.keys():
             if section == '__meta__': continue
             # Generate default if undefined
             self._sections_help[section] = self._sections_help.get(section, "{0} options".format(section.capitalize()))
-
-
-        if self.__data.has_key('__meta__') and self.__data["__meta__"].has_key('sections_text'):
-            self._sections_descriptions = self.__data["__meta__"]["sections_text"]
-        else:
-            self._sections_descriptions = {"sections_text": {}}
 
         for section in self.__data.keys():
             if section == '__meta__': continue
@@ -131,7 +129,7 @@ class Parser(object):
             self._options_parser.add_option_group(group)
 
         self._options_parser.add_option(
-            "--gen-conf", help="Print sample config file and exit.",
+            "--gen-conf", "--gen-config", help="Print sample config file and exit.",
             action="callback", callback=self._gen_conf
         )
         return self._options_parser
@@ -180,6 +178,9 @@ class Parser(object):
 
                 if func.critical:
                     exit(128)
+
+    def _to_dict(self):
+        pass
 
     def parse_args(self):
         parser = self._options_builder()

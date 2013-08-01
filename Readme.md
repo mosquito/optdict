@@ -100,6 +100,7 @@ The module provides this validators:
 * ValidOnce(name1[, name2 ... nameN])
 * Conflict(name1[, name2 ... nameN])
 * ValidationQueue(Validator0[, Validator1])
+* Modifier(func1[, func2 ... funcN)
 
 Call example:
 
@@ -196,6 +197,15 @@ example:
             lambda x: x < 0,
             lambda x: x > 10,
         )
+    )
+
+### Modifier
+Modify value
+
+example:
+
+    Modifier(
+        lambda f: open(f).read()
     )
 
 ## Configuration from JSON file

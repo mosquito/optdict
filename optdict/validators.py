@@ -19,7 +19,7 @@ class ValidatorBase(object):
 
     def __call__(self, arg, options=None, parser=None, dest=None, *args):
         try:
-            self.arg = arg
+            self.value = arg
             self.options = options
             self.name = dest
             self.parser = parser
@@ -36,13 +36,13 @@ class ValidationQueue(ValidatorBase):
     def call(self):
         for func in self.args:
             if isinstance(func, ValidatorBase):
-                func(arg=self.arg, options=self.options, parser=self.parser, dest=self.name)
+                func(arg=self.value, options=self.options, parser=self.parser, dest=self.name)
 
 class ValidOnce(ValidatorBase):
     def call(self):
         res = True
         for func in self.args:
-            res = res or func(self.arg)
+            res = res or func(self.value)
             if res:
                 return res
 
@@ -55,10 +55,10 @@ class ValidAll(ValidatorBase):
     def call(self):
         res = True
         for func in self.args:
-            res = res and func(self.arg)
+            res = res and func(self.value)
 
         if not res:
-            raise ValidationError("Value \"{0}\" for option \"{1}\" not valid".format(self.arg, self.name))
+            raise ValidationError("Value \"{0}\" for option \"{1}\" not valid".format(self.value, self.name))
         else:
             return res
 
@@ -107,3 +107,8 @@ class Conflict(ValidatorBase):
 # Synonyms
 Valid = ValidAll
 Require = RequireAll
+
+class Modifier(ValidatorBase):
+    def call(self):
+        for func in self.args:
+            setattr(self.parser.values, self.name, func(self.value))
