@@ -30,6 +30,10 @@ def test_000_optons():
                 "validator": validators.ValidAll(lambda addr: ".".join([str(j) for j in [int(i) for i in addr.split(".")] if j >=0 and j<256]) == addr),
                 "help": "Listen address",
                 "default": "0.0.0.0"
+            },
+            "__meta__": {
+                "help": "Main section help",
+                "text": "Ololooololo"
             }
         },
         "debug": {

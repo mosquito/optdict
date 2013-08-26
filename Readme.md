@@ -49,6 +49,10 @@ options_dict = {
             "default": 0,
             "type": "int",
             "help": "Debuging output"
+        },
+        "__meta__": {
+            "help": "Main section",
+            "text": "Alternative syntax"
         }
     },
     # Meta section

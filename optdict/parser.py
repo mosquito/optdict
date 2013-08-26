@@ -32,6 +32,9 @@ class Parser(object):
 
     def _validate_dict(self):
         self._data_dict = dict()
+        self._sections_help = dict()
+        self._sections_descriptions = dict()
+
         for section, key_list in self.__data.items():
             if section == "__meta__":
                 continue
@@ -39,6 +42,9 @@ class Parser(object):
             self._data_dict[section] = dict()
 
             for key, params in key_list.items():
+                if key == '__meta__':
+                    continue
+
                 full_key = self._key(section, key)
                 self._data_dict[section][key] = {
                     'keys': params.get("keys", None),
@@ -50,6 +56,7 @@ class Parser(object):
                     'validator': params.get("validator", validators.Valid(lambda x: True,)),
                     'metavar': params.get("metavar", key.upper())
                 }
+
                 option = self._data_dict[section][key]
 
                 if option['action'].startswith("store") and \
@@ -89,12 +96,23 @@ class Parser(object):
                         raise OptionValueError("required value")
 
 
+            if "__meta__" in key_list.keys():
+                if isinstance(key_list['__meta__'], dict):
+                    cur = key_list['__meta__']
+                    if cur.has_key("help") or cur.has_key("text"):
+                        self._sections_help[section] = cur['help'] if cur.has_key('help') else ""
+                        self._sections_descriptions[section] = cur['text'] if cur.has_key("description") else ""
+
         # Add help text for groups
 
         # if defined
         if self.__data.has_key('__meta__'):
-            self._sections_help = self.__data["__meta__"].get("sections_help", {"sections_help": {}})
-            self._sections_descriptions = self.__data["__meta__"].get("sections_text", {"sections_text": {}})
+            if self.__data['__meta__'].has_key('sections_help'):
+                for section, help_text in self.__data['__meta__']['sections_help'].items():
+                    self._sections_help[section] = help_text
+            if self.__data['__meta__'].has_key('sections_text'):
+                for section, help_text in self.__data['__meta__']['sections_text'].items():
+                    self._sections_descriptions[section] = help_text
 
             self.__usage = self.__data['__meta__'].get("usage", None)
 
