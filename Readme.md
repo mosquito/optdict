@@ -60,10 +60,9 @@ options_dict = {
         # Help messages for sections
         "sections_help": {
             "debug": "Debugging options",
-            "main": "Main options"
         },
         "sections_text": {
-            "main": "This section contains main options for test this..."
+            "Debug": "This section contains debug options for test this..."
         }
     }
 }
