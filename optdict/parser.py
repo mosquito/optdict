@@ -12,6 +12,7 @@ from optparse import OptionParser, OptionGroup, OptionValueError, OptionConflict
 import sys
 import codecs
 import json
+import traceback
 from optdict import validators
 import os
 
@@ -59,32 +60,33 @@ class Parser(object):
 
                 option = self._data_dict[section][key]
 
+                # string for store type
                 if option['action'].startswith("store") and \
                         option['type'] == None:
                     option['type'] = "string"
 
+                # Set Default value in help text if type store_*
                 if option['action'].startswith("store") and not option["default"] == None:
                     option["help"] = "{0} [Default: {1}]".format(option['help'], option['default'])
 
+                # If not determined keys
                 if option['keys'] == None:
-                    raise OptionValueError("required value")
+                    raise OptionValueError("for option {0} in section {1}, keys wasn't determined".format(key, section))
 
-                if option['action'] == "store_true" and \
-                    option['default'] == None:
-                    option.pop('type')
-                    option['default'] = False
-
-                if option['action'] == "store_false" and \
-                    option['default'] == None:
-                    option.pop('type')
-                    option['default'] = True
-
-                if option['action'] == "store_const":
+                # if store_(true|false) type not need
+                if option['action'] == "store_true" or option['action'] == "store_false":
                     option.pop('type')
 
-                if "count" in option['action']:
+                    # set valid default
+                    if option['default'] == None:
+                        if option['action'] == "store_true":  option['default'] = False
+                        if option['action'] == "store_false": option['default'] = True
+
+                # store_const and store_count not need type
+                if "count" in option['action'] or option['action'] == "store_const":
                     option.pop('type')
 
+                # set callback if type callback
                 if option['action'] == 'callback':
                     if not option['type']:
                         option.pop('type')
@@ -168,7 +170,7 @@ class Parser(object):
         try:
             data = json.loads(codecs.open(value, "r", "utf-8").read())
         except (ValueError, TypeError) as e:
-            raise OptionValueError("Config not valid JSON file\n\t{0}".format(str(e)))
+            raise OptionValueError("Config not valid JSON file\n\t{0}\n".format(str(e)))
 
         for section, keys in data.items():
             for key, value in keys.items():
@@ -192,6 +194,8 @@ class Parser(object):
                     sys.stderr.write("{2}\n ERROR: Validator for key \"{0}\" error:\n{1}\n{2}\n".format(dest, str(e), "=" * 50))
                     sys.stderr.flush()
                 except Exception as e:
+                    sys.stderr.write("{2}\n ERROR: Unexpected validation error for key \"{0}\" error:\n{1}\n{2}\n".format(dest, traceback.print_exc(), "=" * 50))
+                    sys.stderr.flush()
                     raise e
 
                 if func.critical:
