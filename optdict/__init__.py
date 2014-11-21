@@ -7,4 +7,4 @@ from . import validators
 
 __author__ = 'mosquito'
 __all__ = [Parser, validators]
-__version__ = "0.5.11"
+__version__ = "0.5.12"
