@@ -50,7 +50,7 @@ class Parser(object):
 
                 full_key = self._key(section, key)
                 self._data_dict[section][key] = {
-                    'keys': params.get("keys", ["--{0}".format(key), ]),
+                    'keys': params.get("keys", ["--{0}-{1}".format(section, key), ]),
                     'default': params.get("default", None),
                     'dest': full_key,
                     'action': params.get("action", "store"),
