@@ -55,7 +55,6 @@ class Parser(object):
                     'dest': full_key,
                     'action': params.get("action", "store"),
                     'type': params.get("type", None),
-                    'required': params.get("required", False),
                     'help': unicode(params.get("help", "Set {0} value".format(key))),
                     'validator': params.get("validator", validators.Valid(lambda x: True,)),
                     'metavar': params.get("metavar", key.upper())
