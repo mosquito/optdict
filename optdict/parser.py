@@ -4,7 +4,7 @@
 """
 * Date: 29.07.13
 * Time: 0:12
-* Original filename: 
+* Original filename:
 """
 
 from __future__ import print_function, absolute_import
@@ -18,7 +18,9 @@ import os
 
 __author__ = 'mosquito'
 
+
 class Parser(object):
+
     def __init__(self, dictionary):
         assert isinstance(dictionary, dict)
         self.__data = dictionary
@@ -48,11 +50,12 @@ class Parser(object):
 
                 full_key = self._key(section, key)
                 self._data_dict[section][key] = {
-                    'keys': params.get("keys", None),
+                    'keys': params.get("keys", ["--{0}".format(key), ]),
                     'default': params.get("default", None),
                     'dest': full_key,
                     'action': params.get("action", "store"),
                     'type': params.get("type", None),
+                    'required': params.get("required", False),
                     'help': str(params.get("help", "Set {0} value".format(key))),
                     'validator': params.get("validator", validators.Valid(lambda x: True,)),
                     'metavar': params.get("metavar", key.upper())
@@ -69,18 +72,16 @@ class Parser(object):
                 if option['action'].startswith("store") and not option["default"] == None:
                     option["help"] = "{0} [Default: {1}]".format(option['help'], option['default'])
 
-                # If not determined keys
-                if option['keys'] == None:
-                    raise OptionValueError("for option {0} in section {1}, keys wasn't determined".format(key, section))
-
                 # if store_(true|false) type not need
                 if option['action'] == "store_true" or option['action'] == "store_false":
                     option.pop('type')
 
                     # set valid default
                     if option['default'] == None:
-                        if option['action'] == "store_true":  option['default'] = False
-                        if option['action'] == "store_false": option['default'] = True
+                        if option['action'] == "store_true":
+                            option['default'] = False
+                        if option['action'] == "store_false":
+                            option['default'] = True
 
                 # store_const and store_count not need type
                 if "count" in option['action'] or option['action'] == "store_const":
@@ -96,7 +97,6 @@ class Parser(object):
 
                     if option['callback'] == None:
                         raise OptionValueError("required value")
-
 
             if "__meta__" in key_list.keys():
                 if isinstance(key_list['__meta__'], dict):
@@ -119,12 +119,14 @@ class Parser(object):
             self.__usage = self.__data['__meta__'].get("usage", None)
 
         for section in self.__data.keys():
-            if section == '__meta__': continue
+            if section == '__meta__':
+                continue
             # Generate default if undefined
             self._sections_help[section] = self._sections_help.get(section, "{0} options".format(section.capitalize()))
 
         for section in self.__data.keys():
-            if section == '__meta__': continue
+            if section == '__meta__':
+                continue
             # Generate default if undefined
             self._sections_descriptions[section] = self._sections_descriptions.get(section, None)
 
@@ -214,5 +216,5 @@ class Parser(object):
         self.parser = self._options_builder()
         options, args = self.parser.parse_args()
         self._validate(options, args)
-        options.to_dict = lambda : self._to_dict()
+        options.to_dict = lambda: self._to_dict()
         return (options, args)
