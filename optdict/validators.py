@@ -1,17 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""
-* Date: 29.07.13
-* Time: 23:09
-* Original filename: 
-"""
-
 __author__ = 'mosquito'
 
-class ValidationError(Exception): pass
+
+class ValidationError(Exception):
+    pass
+
 
 class ValidatorBase(object):
+
     def __init__(self, *args, **kwargs):
         self.critical = kwargs.get('critical', False)
         self.args = args
@@ -32,13 +30,17 @@ class ValidatorBase(object):
     def call(self):
         pass
 
+
 class ValidationQueue(ValidatorBase):
+
     def call(self):
         for func in self.args:
             if isinstance(func, ValidatorBase):
                 func(arg=self.value, options=self.options, parser=self.parser, dest=self.name)
 
+
 class ValidOnce(ValidatorBase):
+
     def call(self):
         res = True
         for func in self.args:
@@ -51,7 +53,9 @@ class ValidOnce(ValidatorBase):
         else:
             return res
 
+
 class ValidAll(ValidatorBase):
+
     def call(self):
         res = True
         for func in self.args:
@@ -62,7 +66,9 @@ class ValidAll(ValidatorBase):
         else:
             return res
 
+
 class RequireAll(ValidatorBase):
+
     def call(self):
         res = dict()
 
@@ -76,7 +82,9 @@ class RequireAll(ValidatorBase):
         if nores:
             raise ValidationError("\"{0}\": this option requires the ads the following options: [{1}]".format(self.name, ", ".join(nores)))
 
+
 class RequireOnce(ValidatorBase):
+
     def call(self):
         res = dict()
 
@@ -90,7 +98,9 @@ class RequireOnce(ValidatorBase):
         if not nores:
             raise ValidationError("\"{0}\", this option requires the ads one of the options: [{1}]".format(self.name, ", ".join(nores)))
 
+
 class Conflict(ValidatorBase):
+
     def call(self):
         res = dict()
 
@@ -108,7 +118,9 @@ class Conflict(ValidatorBase):
 Valid = ValidAll
 Require = RequireAll
 
+
 class Modifier(ValidatorBase):
+
     def call(self):
         for func in self.args:
             setattr(self.parser.values, self.name, func(self.value))

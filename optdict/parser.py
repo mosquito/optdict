@@ -52,7 +52,7 @@ class Parser(object):
                 self._data_dict[section][key] = {
                     'keys': params.get("keys", ["--{0}-{1}".format(section, key), ]),
                     'default': params.get("default", None),
-                    'dest': full_key,
+                    'dest': params.get("dest", full_key),
                     'action': params.get("action", "store"),
                     'type': params.get("type", None),
                     'help': unicode(params.get("help", "Set {0} value".format(key))),
