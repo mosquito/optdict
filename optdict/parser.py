@@ -70,7 +70,7 @@ class Parser(object):
 
                 # Set Default value in help text if type store_*
                 if option['action'].startswith("store") and not option["default"] == None:
-                    option["help"] = "{0} [Default: {1}]".format(option['help'], option['default'])
+                    option["help"] = u"{0} [Default: {1}]".format(option['help'], option['default'])
 
                 # if store_(true|false) type not need
                 if option['action'] == "store_true" or option['action'] == "store_false":
